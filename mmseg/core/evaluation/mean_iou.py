@@ -55,7 +55,11 @@ def mean_iou(results, gt_seg_maps, num_classes, ignore_index):
     total_area_union = np.zeros((num_classes, ), dtype=np.float)
     total_area_pred_label = np.zeros((num_classes, ), dtype=np.float)
     total_area_label = np.zeros((num_classes, ), dtype=np.float)
+    bad_count = 0
     for i in range(num_imgs):
+        if results[i].shape != gt_seg_maps[i].shape:
+            bad_count += 1
+            continue
         area_intersect, area_union, area_pred_label, area_label = \
             intersect_and_union(results[i], gt_seg_maps[i], num_classes,
                                 ignore_index=ignore_index)
@@ -63,6 +67,8 @@ def mean_iou(results, gt_seg_maps, num_classes, ignore_index):
         total_area_union += area_union
         total_area_pred_label += area_pred_label
         total_area_label += area_label
+    if bad_count > 0:
+        print("\nMean IOU: %d images out of %d had mismmatch shape and were ingnored." % (bad_count, len(results)))
     all_acc = total_area_intersect.sum() / total_area_label.sum()
     acc = total_area_intersect / total_area_label
     iou = total_area_intersect / total_area_union
