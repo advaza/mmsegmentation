@@ -19,15 +19,13 @@ def intersect_and_union(pred_label, label, num_classes, ignore_index):
          ndarray: The ground truth histogram on all classes.
     """
 
-    mask = (label != ignore_index)
+    mask = label != ignore_index
     pred_label = pred_label[mask]
     label = label[mask]
 
     intersect = pred_label[pred_label == label]
-    area_intersect, _ = np.histogram(
-        intersect, bins=np.arange(num_classes + 1))
-    area_pred_label, _ = np.histogram(
-        pred_label, bins=np.arange(num_classes + 1))
+    area_intersect, _ = np.histogram(intersect, bins=np.arange(num_classes + 1))
+    area_pred_label, _ = np.histogram(pred_label, bins=np.arange(num_classes + 1))
     area_label, _ = np.histogram(label, bins=np.arange(num_classes + 1))
     area_union = area_pred_label + area_label - area_intersect
 
@@ -51,24 +49,27 @@ def mean_iou(results, gt_seg_maps, num_classes, ignore_index):
 
     num_imgs = len(results)
     assert len(gt_seg_maps) == num_imgs
-    total_area_intersect = np.zeros((num_classes, ), dtype=np.float)
-    total_area_union = np.zeros((num_classes, ), dtype=np.float)
-    total_area_pred_label = np.zeros((num_classes, ), dtype=np.float)
-    total_area_label = np.zeros((num_classes, ), dtype=np.float)
+    total_area_intersect = np.zeros((num_classes,), dtype=np.float)
+    total_area_union = np.zeros((num_classes,), dtype=np.float)
+    total_area_pred_label = np.zeros((num_classes,), dtype=np.float)
+    total_area_label = np.zeros((num_classes,), dtype=np.float)
     bad_count = 0
     for i in range(num_imgs):
         if results[i].shape != gt_seg_maps[i].shape:
             bad_count += 1
             continue
-        area_intersect, area_union, area_pred_label, area_label = \
-            intersect_and_union(results[i], gt_seg_maps[i], num_classes,
-                                ignore_index=ignore_index)
+        area_intersect, area_union, area_pred_label, area_label = intersect_and_union(
+            results[i], gt_seg_maps[i], num_classes, ignore_index=ignore_index
+        )
         total_area_intersect += area_intersect
         total_area_union += area_union
         total_area_pred_label += area_pred_label
         total_area_label += area_label
     if bad_count > 0:
-        print("\nMean IOU: %d images out of %d had mismmatch shape and were ingnored." % (bad_count, len(results)))
+        print(
+            "\nMean IOU: %d images out of %d had mismmatch shape and were ingnored."
+            % (bad_count, len(results))
+        )
     all_acc = total_area_intersect.sum() / total_area_label.sum()
     acc = total_area_intersect / total_area_label
     iou = total_area_intersect / total_area_union

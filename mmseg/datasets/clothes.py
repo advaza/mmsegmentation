@@ -11,5 +11,7 @@ class ClothesDataset(CustomDataset):
     PALETTE = [[128, 128, 128], [129, 127, 38], [120, 69, 125]]
 
     def __init__(self, split, **kwargs):
-        super(ClothesDataset, self).__init__(img_suffix=".jpg", seg_map_suffix=".png", split=split, **kwargs)
+        super(ClothesDataset, self).__init__(
+            img_suffix=".jpg", seg_map_suffix=".png", split=split, **kwargs
+        )
         assert osp.exists(self.img_dir) and self.split is not None

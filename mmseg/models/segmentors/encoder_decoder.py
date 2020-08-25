@@ -17,14 +17,16 @@ class EncoderDecoder(BaseSegmentor):
     which could be dumped during inference.
     """
 
-    def __init__(self,
-                 backbone,
-                 decode_head,
-                 neck=None,
-                 auxiliary_head=None,
-                 train_cfg=None,
-                 test_cfg=None,
-                 pretrained=None):
+    def __init__(
+        self,
+        backbone,
+        decode_head,
+        neck=None,
+        auxiliary_head=None,
+        train_cfg=None,
+        test_cfg=None,
+        pretrained=None,
+    ):
         super(EncoderDecoder, self).__init__()
         self.backbone = builder.build_backbone(backbone)
         if neck is not None:
@@ -86,21 +88,17 @@ class EncoderDecoder(BaseSegmentor):
         x = self.extract_feat(img)
         out = self._decode_head_forward_test(x, img_metas)
         out = resize(
-            input=out,
-            size=img.shape[2:],
-            mode='bilinear',
-            align_corners=self.align_corners)
+            input=out, size=img.shape[2:], mode="bilinear", align_corners=self.align_corners
+        )
         return out
 
     def _decode_head_forward_train(self, x, img_metas, gt_semantic_seg):
         """Run forward function and calculate loss for decode head in
         training."""
         losses = dict()
-        loss_decode = self.decode_head.forward_train(x, img_metas,
-                                                     gt_semantic_seg,
-                                                     self.train_cfg)
+        loss_decode = self.decode_head.forward_train(x, img_metas, gt_semantic_seg, self.train_cfg)
 
-        losses.update(add_prefix(loss_decode, 'decode'))
+        losses.update(add_prefix(loss_decode, "decode"))
         return losses
 
     def _decode_head_forward_test(self, x, img_metas):
@@ -115,14 +113,13 @@ class EncoderDecoder(BaseSegmentor):
         losses = dict()
         if isinstance(self.auxiliary_head, nn.ModuleList):
             for idx, aux_head in enumerate(self.auxiliary_head):
-                loss_aux = aux_head.forward_train(x, img_metas,
-                                                  gt_semantic_seg,
-                                                  self.train_cfg)
-                losses.update(add_prefix(loss_aux, f'aux_{idx}'))
+                loss_aux = aux_head.forward_train(x, img_metas, gt_semantic_seg, self.train_cfg)
+                losses.update(add_prefix(loss_aux, f"aux_{idx}"))
         else:
             loss_aux = self.auxiliary_head.forward_train(
-                x, img_metas, gt_semantic_seg, self.train_cfg)
-            losses.update(add_prefix(loss_aux, 'aux'))
+                x, img_metas, gt_semantic_seg, self.train_cfg
+            )
+            losses.update(add_prefix(loss_aux, "aux"))
 
         return losses
 
@@ -153,13 +150,11 @@ class EncoderDecoder(BaseSegmentor):
 
         losses = dict()
 
-        loss_decode = self._decode_head_forward_train(x, img_metas,
-                                                      gt_semantic_seg)
+        loss_decode = self._decode_head_forward_train(x, img_metas, gt_semantic_seg)
         losses.update(loss_decode)
 
         if self.with_auxiliary_head:
-            loss_aux = self._auxiliary_head_forward_train(
-                x, img_metas, gt_semantic_seg)
+            loss_aux = self._auxiliary_head_forward_train(x, img_metas, gt_semantic_seg)
             losses.update(loss_aux)
 
         return losses
@@ -185,22 +180,21 @@ class EncoderDecoder(BaseSegmentor):
                 y1 = max(y2 - h_crop, 0)
                 x1 = max(x2 - w_crop, 0)
                 crop_img = img[:, :, y1:y2, x1:x2]
-                pad_img = crop_img.new_zeros(
-                    (crop_img.size(0), crop_img.size(1), h_crop, w_crop))
-                pad_img[:, :, :y2 - y1, :x2 - x1] = crop_img
+                pad_img = crop_img.new_zeros((crop_img.size(0), crop_img.size(1), h_crop, w_crop))
+                pad_img[:, :, : y2 - y1, : x2 - x1] = crop_img
                 pad_seg_logit = self.encode_decode(pad_img, img_meta)
-                preds[:, :, y1:y2,
-                      x1:x2] += pad_seg_logit[:, :, :y2 - y1, :x2 - x1]
+                preds[:, :, y1:y2, x1:x2] += pad_seg_logit[:, :, : y2 - y1, : x2 - x1]
                 count_mat[:, :, y1:y2, x1:x2] += 1
         assert (count_mat == 0).sum() == 0
         preds = preds / count_mat
         if rescale:
             preds = resize(
                 preds,
-                size=img_meta[0]['ori_shape'][:2],
-                mode='bilinear',
+                size=img_meta[0]["ori_shape"][:2],
+                mode="bilinear",
                 align_corners=self.align_corners,
-                warning=False)
+                warning=False,
+            )
 
         return preds
 
@@ -211,10 +205,11 @@ class EncoderDecoder(BaseSegmentor):
         if rescale:
             seg_logit = resize(
                 seg_logit,
-                size=img_meta[0]['ori_shape'][:2],
-                mode='bilinear',
+                size=img_meta[0]["ori_shape"][:2],
+                mode="bilinear",
                 align_corners=self.align_corners,
-                warning=False)
+                warning=False,
+            )
 
         return seg_logit
 
@@ -234,22 +229,22 @@ class EncoderDecoder(BaseSegmentor):
             Tensor: The output segmentation map.
         """
 
-        assert self.test_cfg.mode in ['slide', 'whole']
-        ori_shape = img_meta[0]['ori_shape']
-        assert all(_['ori_shape'] == ori_shape for _ in img_meta)
-        if self.test_cfg.mode == 'slide':
+        assert self.test_cfg.mode in ["slide", "whole"]
+        ori_shape = img_meta[0]["ori_shape"]
+        assert all(_["ori_shape"] == ori_shape for _ in img_meta)
+        if self.test_cfg.mode == "slide":
             seg_logit = self.slide_inference(img, img_meta, rescale)
         else:
             seg_logit = self.whole_inference(img, img_meta, rescale)
         output = F.softmax(seg_logit, dim=1)
-        flip = img_meta[0]['flip']
-        flip_direction = img_meta[0]['flip_direction']
+        flip = img_meta[0]["flip"]
+        flip_direction = img_meta[0]["flip_direction"]
         if flip:
-            assert flip_direction in ['horizontal', 'vertical']
-            if flip_direction == 'horizontal':
-                output = output.flip(dims=(3, ))
-            elif flip_direction == 'vertical':
-                output = output.flip(dims=(2, ))
+            assert flip_direction in ["horizontal", "vertical"]
+            if flip_direction == "horizontal":
+                output = output.flip(dims=(3,))
+            elif flip_direction == "vertical":
+                output = output.flip(dims=(2,))
 
         return output
 

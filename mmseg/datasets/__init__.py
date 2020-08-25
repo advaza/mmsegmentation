@@ -7,7 +7,15 @@ from .voc import PascalVOCDataset
 from .clothes import ClothesDataset
 
 __all__ = [
-    'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset',
-    'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset',
-    'PascalVOCDataset', 'ADE20KDataset', "ClothesDataset",
+    "CustomDataset",
+    "build_dataloader",
+    "ConcatDataset",
+    "RepeatDataset",
+    "DATASETS",
+    "build_dataset",
+    "PIPELINES",
+    "CityscapesDataset",
+    "PascalVOCDataset",
+    "ADE20KDataset",
+    "ClothesDataset",
 ]
