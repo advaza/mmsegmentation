@@ -2,8 +2,8 @@
 # _base_ = "./pascal_voc12.py"
 dataset_type = "ClothesDataset"
 data_root = "/data"
-ann_dir = "mhp/LV-MHP-v2/masks"
-img_dir = "mhp/LV-MHP-v2/images"
+ann_dir = "modanet_cnvrg-1/masks"
+img_dir = "modanet_cnvrg-1/images"
 img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 crop_size = (512, 512)
 train_pipeline = [
@@ -42,7 +42,7 @@ data = dict(
         data_root=data_root,
         img_dir=img_dir,
         ann_dir=ann_dir,
-        split="mhp/LV-MHP-v2/splits/train.txt",
+        split="modanet_cnvrg-1/splits/train.txt",
         pipeline=train_pipeline,
     ),
     val=dict(
@@ -50,7 +50,7 @@ data = dict(
         data_root=data_root,
         img_dir=img_dir,
         ann_dir=ann_dir,
-        split="mhp/LV-MHP-v2/splits/val.txt",
+        split="modanet_cnvrg-1/splits/val.txt",
         pipeline=test_pipeline,
     ),
     test=dict(
@@ -58,7 +58,7 @@ data = dict(
         data_root=data_root,
         img_dir=img_dir,
         ann_dir=ann_dir,
-        split="mhp/LV-MHP-v2/splits/val.txt",
+        split="modanet_cnvrg-1/splits/val.txt",
         pipeline=test_pipeline,
     ),
 )
