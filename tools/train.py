@@ -53,6 +53,8 @@ def parse_args():
         help="job launcher",
     )
     parser.add_argument("--local_rank", type=int, default=0)
+    parser.add_argument("--class_weights", nargs="+", type=float, default=None,
+                        help="Classes weight for loss class balance.")
     args = parser.parse_args()
     if "LOCAL_RANK" not in os.environ:
         os.environ["LOCAL_RANK"] = str(args.local_rank)
@@ -81,6 +83,9 @@ def main():
         cfg.load_from = args.load_from
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
+    if args.class_weights is not None:
+        for head in cfg.model.decode_head:
+            head.loss_decode.class_weight = args.class_weights
     if args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids
     else:
@@ -114,7 +119,7 @@ def main():
 
     # log some basic info
     logger.info(f"Distributed training: {distributed}")
-    # logger.info(f'Config:\n{cfg.pretty_text}')
+    logger.info(f'Config:\n{cfg.pretty_text}')
 
     # set random seeds
     if args.seed is not None:
